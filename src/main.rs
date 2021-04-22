@@ -81,40 +81,16 @@ fn main() -> Result<(), String> {
         0.0,
     ];
 
-    // setup vertex buffer object
-    let mut vbo: gl::types::GLuint = 0;
-    unsafe {
-        gl::GenBuffers(1, &mut vbo);
-
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes,
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-            gl::STATIC_DRAW,                               // usage
-        );
-        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-    }
-
     let a_position_location = basic_shader.get_attribute_location("a_position");
+    let attrib_info = AttributeInfo {
+        location: a_position_location,
+        component_size: 3,
+    };
 
-    // setup vertex array object
-    let mut vao: gl::types::GLuint = 0;
-    unsafe {
-        gl::GenVertexArrays(1, &mut vao);
-
-        gl::BindVertexArray(vao);
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::EnableVertexAttribArray(a_position_location); // attribute a_position in basic.vert shader
-        gl::VertexAttribPointer(
-            a_position_location, // index of the generic vertex attribute ("layout (location = 0)")
-            3,                   // number of components per vertex attribute
-            gl::FLOAT,           // data type
-            gl::FALSE,           // normalized
-            (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-            std::ptr::null(),                                     // offset of the first component
-        );
-    }
+    let mut buffer = GLBuffer::new();
+    buffer.configure(vec![attrib_info], false);
+    buffer.set_data(&vertices);
+    buffer.upload();
 
     basic_shader.use_shader();
 
@@ -173,12 +149,8 @@ fn main() -> Result<(), String> {
                 1,
                 colors.as_ptr() as *const gl::types::GLfloat,
             );
-            gl::BindVertexArray(vao);
-            gl::DrawArrays(
-                gl::TRIANGLES, // mode
-                0,             // starting index in the enabled arrays
-                6,             // number of indices
-            )
+
+            buffer.draw();
         }
         window.gl_swap_window();
     }
