@@ -1,27 +1,37 @@
 extern crate gl;
 extern crate sdl2;
 
-use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
+mod render_gl;
 
-extern "system" fn dbg_callback(
-    source: gl::types::GLenum,
-    etype: gl::types::GLenum,
-    _id: gl::types::GLuint,
-    severity: gl::types::GLenum,
-    _msg_length: gl::types::GLsizei,
-    msg: *const gl::types::GLchar,
-    _user_data: *mut std::ffi::c_void,
-) {
-    unsafe {
-        println!(
-            "dbg_callback {:#X} {:#X} {:#X} {:?}",
-            source,
-            etype,
-            severity,
-            std::ffi::CStr::from_ptr(msg),
-        );
-    }
+mod prelude {
+
+    pub use crate::render_gl::{Program, Shader};
+    pub use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
+    pub use std::ffi::{CStr, CString};
 }
+
+use prelude::*;
+
+// Crash on macOS
+// extern "system" fn dbg_callback(
+//     source: gl::types::GLenum,
+//     etype: gl::types::GLenum,
+//     _id: gl::types::GLuint,
+//     severity: gl::types::GLenum,
+//     _msg_length: gl::types::GLsizei,
+//     msg: *const gl::types::GLchar,
+//     _user_data: *mut std::ffi::c_void,
+// ) {
+//     unsafe {
+//         println!(
+//             "dbg_callback {:#X} {:#X} {:#X} {:?}",
+//             source,
+//             etype,
+//             severity,
+//             std::ffi::CStr::from_ptr(msg),
+//         );
+//     }
+// }
 
 fn main() -> Result<(), String> {
     println!("Hello, JellyEngine!");
@@ -59,6 +69,48 @@ fn main() -> Result<(), String> {
         gl_attr.context_profile(),
         gl_attr.context_version(),
     );
+
+    let vert_shader = Shader::from_vert_source(&CString::new(include_str!("basic.vert")).unwrap())?;
+    let frag_shader = Shader::from_frag_source(&CString::new(include_str!("basic.frag")).unwrap())?;
+    let shader_program = Program::from_shaders(&[vert_shader, frag_shader])?;
+    shader_program.set_used();
+
+    let vertices: Vec<f32> = vec![-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+
+    // setup vertex buffer object
+    let mut vbo: gl::types::GLuint = 0;
+    unsafe {
+        gl::GenBuffers(1, &mut vbo);
+
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::BufferData(
+            gl::ARRAY_BUFFER,
+            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes,
+            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
+            gl::STATIC_DRAW,                               // usage
+        );
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    }
+
+    // setup vertex array object
+    let mut vao: gl::types::GLuint = 0;
+    unsafe {
+        gl::GenVertexArrays(1, &mut vao);
+
+        gl::BindVertexArray(vao);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::EnableVertexAttribArray(0); // attribute a_position in basic.vert shader
+        gl::VertexAttribPointer(
+            0,                                                    // index of vertex attribute (a_position)
+            3,         // number of components per vertex attribute
+            gl::FLOAT, // data type
+            gl::FALSE, // normalized
+            (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+            std::ptr::null(),
+        );
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        gl::BindVertexArray(0);
+    }
 
     unsafe {
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
@@ -107,6 +159,14 @@ fn main() -> Result<(), String> {
 
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            // Draw triangle
+            gl::BindVertexArray(vao);
+            gl::DrawArrays(
+                gl::TRIANGLES, // mode
+                0,             // starting index in the enabled arrays
+                3,             // number of indices
+            )
         }
         window.gl_swap_window();
     }
