@@ -1,5 +1,5 @@
 [package]
-name = "rustyjelly"
+name = "jellyengine-core"
 version = "0.1.0"
 authors = ["max-jellycat <max@jellycat.fr>"]
 edition = "2018"
@@ -7,4 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sdl2 = "0.34.4"
+
+[dependencies.sdl2]
+version = "0.34.4"
+default-features = false
+features = ["image"]

@@ -4,8 +4,8 @@ A 2D game engine in rustlang
 
 ## ROADMAP
 
-- [ ] get a window
-- [ ] get an image rendering in said window
+- [x] get a window
+- [x] get an image rendering in said window
 - [ ] get a single sprite rendering from a spritesheet
 - [ ] simple movement
 - [ ] animations
