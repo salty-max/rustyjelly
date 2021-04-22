@@ -6,7 +6,7 @@ A 2D game engine in rustlang
 
 - [x] get a window
 - [x] get an image rendering in said window
-- [ ] get a single sprite rendering from a spritesheet
+- [x] get a single sprite rendering from a spritesheet
 - [ ] simple movement
 - [ ] animations
 - [ ] scale to an ECS (homemade or an existing one like specs)
