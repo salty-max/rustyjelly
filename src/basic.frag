@@ -5,10 +5,11 @@
 // } IN;
 
 precision mediump float;
+uniform vec4 u_color;
 
 out vec4 Color;
 
 void main()
 {
-    Color;
+    Color = u_color;
 }

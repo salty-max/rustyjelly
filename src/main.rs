@@ -96,6 +96,8 @@ fn main() -> Result<(), String> {
         gl::BindBuffer(gl::ARRAY_BUFFER, 0);
     }
 
+    let a_position_location = basic_shader.get_attribute_location("a_position");
+
     // setup vertex array object
     let mut vao: gl::types::GLuint = 0;
     unsafe {
@@ -103,12 +105,12 @@ fn main() -> Result<(), String> {
 
         gl::BindVertexArray(vao);
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::EnableVertexAttribArray(0); // attribute a_position in basic.vert shader
+        gl::EnableVertexAttribArray(a_position_location); // attribute a_position in basic.vert shader
         gl::VertexAttribPointer(
-            0,         // index of the generic vertex attribute ("layout (location = 0)")
-            3,         // number of components per vertex attribute
-            gl::FLOAT, // data type
-            gl::FALSE, // normalized
+            a_position_location, // index of the generic vertex attribute ("layout (location = 0)")
+            3,                   // number of components per vertex attribute
+            gl::FLOAT,           // data type
+            gl::FALSE,           // normalized
             (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
             std::ptr::null(),                                     // offset of the first component
         );
@@ -167,7 +169,7 @@ fn main() -> Result<(), String> {
             // Draw triangle
             let colors: Vec<f32> = vec![1.0, 0.5, 0.5, 1.0];
             gl::Uniform4fv(
-                0, // uniform position (u_color)
+                basic_shader.get_uniform_location("u_color"), // uniform position (u_color)
                 1,
                 colors.as_ptr() as *const gl::types::GLfloat,
             );
