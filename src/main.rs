@@ -1,54 +1,72 @@
-use sdl2::event::Event;
-use sdl2::image::{self, InitFlag, LoadTexture};
-use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
-use std::time::Duration;
+extern crate gl;
+extern crate sdl2;
 
-fn render(
-    canvas: &mut WindowCanvas,
-    color: Color,
-    texture: &Texture,
-    position: Point,
-    sprite: Rect,
-) -> Result<(), String> {
-    canvas.set_draw_color(color);
-    canvas.clear();
+use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
 
-    let (width, height) = canvas.output_size()?;
-    let screen_position = position + Point::new(width as i32 / 2, height as i32 / 2);
-    let screen_rect = Rect::from_center(screen_position, sprite.width(), sprite.height());
-    canvas.copy(texture, sprite, screen_rect)?;
-    canvas.present();
-
-    Ok(())
+extern "system" fn dbg_callback(
+    source: gl::types::GLenum,
+    etype: gl::types::GLenum,
+    _id: gl::types::GLuint,
+    severity: gl::types::GLenum,
+    _msg_length: gl::types::GLsizei,
+    msg: *const gl::types::GLchar,
+    _user_data: *mut std::ffi::c_void,
+) {
+    unsafe {
+        println!(
+            "dbg_callback {:#X} {:#X} {:#X} {:?}",
+            source,
+            etype,
+            severity,
+            std::ffi::CStr::from_ptr(msg),
+        );
+    }
 }
 
 fn main() -> Result<(), String> {
+    println!("Hello, JellyEngine!");
+
+    // Init window
     let sdl_context = sdl2::init()?;
-    let video_subsystem = sdl_context.video()?;
-    let _image_context = image::init(InitFlag::PNG | InitFlag::JPG)?;
+    let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem
-        .window("rustyjelly", 800, 600)
-        .position_centered()
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
+    gl_attr.set_double_buffer(true);
+
+    let mut window = video_subsystem
+        .window("JellyEngine", 800, 600)
+        .opengl()
+        .resizable()
         .build()
-        .expect("could not initialize video subsystem");
+        .expect("Failed to create window");
 
-    let mut canvas = window
-        .into_canvas()
-        .build()
-        .expect("could not make a canvas");
+    let ctx = window.gl_create_context()?;
+    gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
-    let texture_creator = canvas.texture_creator();
-    let texture = texture_creator.load_texture("assets/bardo.png")?;
-    let position = Point::new(0, 0);
-    let sprite = Rect::new(0, 0, 26, 36);
+    unsafe {
+        gl::Enable(gl::DEBUG_OUTPUT);
+        // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+    }
+
+    println!(
+        "Pixel format of the window's GL context: {:?}",
+        window.window_pixel_format()
+    );
+    println!(
+        "OpenGL Profile: {:?} - OpenGL version: {:?}",
+        gl_attr.context_profile(),
+        gl_attr.context_version(),
+    );
+
+    unsafe {
+        gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+    }
+    window.gl_swap_window();
 
     let mut event_pump = sdl_context.event_pump()?;
-    let mut i = 0;
-    'running: loop {
+    'main_loop: loop {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -56,22 +74,41 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => {
-                    break 'running;
+                    break 'main_loop;
                 }
-                _ => {}
+                Event::KeyUp {
+                    keycode: Some(keycode),
+                    keymod,
+                    ..
+                } => match (keycode, keymod) {
+                    (Keycode::R, _) => {
+                        println!("red");
+                        unsafe {
+                            gl::ClearColor(1.0, 0.0, 0.0, 1.0);
+                        }
+                    }
+                    (Keycode::G, _) => {
+                        println!("green");
+                        unsafe {
+                            gl::ClearColor(0.0, 1.0, 0.0, 1.0);
+                        }
+                    }
+                    (Keycode::B, _) => {
+                        println!("blue");
+                        unsafe {
+                            gl::ClearColor(0.0, 0.0, 1.0, 1.0);
+                        }
+                    }
+                    _ => (),
+                },
+                _ => (),
             }
         }
 
-        i = (i + 1) % 255;
-        render(
-            &mut canvas,
-            Color::RGB(i, 64, 255 - i),
-            &texture,
-            position,
-            sprite,
-        )?;
-
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        unsafe {
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
+        window.gl_swap_window();
     }
 
     Ok(())
