@@ -1,11 +1,10 @@
 extern crate gl;
 extern crate sdl2;
 
-mod render_gl;
+mod gl_utility;
 
 mod prelude {
-
-    pub use crate::render_gl::{Program, Shader};
+    pub use crate::gl_utility::prelude::*;
     pub use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
     pub use std::ffi::{CStr, CString};
 }
@@ -45,14 +44,14 @@ fn main() -> Result<(), String> {
     gl_attr.set_context_version(3, 3);
     gl_attr.set_double_buffer(true);
 
-    let mut window = video_subsystem
+    let window = video_subsystem
         .window("JellyEngine", 800, 600)
         .opengl()
         .resizable()
         .build()
         .expect("Failed to create window");
 
-    let ctx = window.gl_create_context()?;
+    let _ctx = window.gl_create_context()?;
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
     unsafe {
@@ -70,13 +69,16 @@ fn main() -> Result<(), String> {
         gl_attr.context_version(),
     );
 
-    let vert_shader = Shader::from_vert_source(&CString::new(include_str!("basic.vert")).unwrap())?;
-    let frag_shader = Shader::from_frag_source(&CString::new(include_str!("basic.frag")).unwrap())?;
-    let shader_program = Program::from_shaders(&[vert_shader, frag_shader])?;
-    shader_program.set_used();
+    let mut shader_manager = ShaderManager::init();
+    let basic_shader = shader_manager.register(
+        "basic",
+        include_str!("basic.vert"),
+        include_str!("basic.frag"),
+    );
 
     let vertices: Vec<f32> = vec![
-        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 1.0,
+        -0.5, -0.5, 0.0, -0.5, 0.5, 0.0, 0.5, 0.5, 0.0, 0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5,
+        0.0,
     ];
 
     // setup vertex buffer object
@@ -107,26 +109,17 @@ fn main() -> Result<(), String> {
             3,         // number of components per vertex attribute
             gl::FLOAT, // data type
             gl::FALSE, // normalized
-            (6 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+            (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
             std::ptr::null(),                                     // offset of the first component
         );
-        gl::EnableVertexAttribArray(1); // this is "layout (location = 0)" in vertex shader
-        gl::VertexAttribPointer(
-            1,         // index of the generic vertex attribute ("layout (location = 0)")
-            3,         // the number of components per generic vertex attribute
-            gl::FLOAT, // data type
-            gl::FALSE, // normalized (int-to-float conversion)
-            (6 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
-            (3 * std::mem::size_of::<f32>()) as *const gl::types::GLvoid, // offset of the first component
-        );
-        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-        gl::BindVertexArray(0);
     }
 
+    basic_shader.use_shader();
+
     unsafe {
+        gl::Viewport(0, 0, 800, 600);
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     }
-    window.gl_swap_window();
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
@@ -172,11 +165,17 @@ fn main() -> Result<(), String> {
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             // Draw triangle
+            let colors: Vec<f32> = vec![1.0, 0.5, 0.5, 1.0];
+            gl::Uniform4fv(
+                0, // uniform position (u_color)
+                1,
+                colors.as_ptr() as *const gl::types::GLfloat,
+            );
             gl::BindVertexArray(vao);
             gl::DrawArrays(
                 gl::TRIANGLES, // mode
                 0,             // starting index in the enabled arrays
-                3,             // number of indices
+                6,             // number of indices
             )
         }
         window.gl_swap_window();

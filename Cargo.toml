@@ -5,9 +5,8 @@ authors = ["max-jellycat <max@jellycat.fr>"]
 edition = "2018"
 
 [dependencies]
+gl = "0.14.0"
 
-[dependencies.gl]
-git = "https://github.com/bjz/gl-rs"
 
 [dependencies.sdl2]
 git = "https://github.com/Rust-SDL2/rust-sdl2.git"
@@ -21,3 +20,6 @@ features = ["ttf","image","gfx","mixer"]
 
 # [package.metadata.vcpkg.target]
 # x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
+
+# [features]
+# gl_debug = ["gl/debug"]
