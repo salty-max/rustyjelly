@@ -92,8 +92,17 @@ fn main() -> Result<(), String> {
 
     let u_projection_location = basic_shader.get_uniform_location("u_projection");
 
-    let mut sprite = Sprite::new("test", &basic_shader, 150.0, 50.0);
+    let mut sprite = Sprite::new("test", &basic_shader, None, None);
     sprite.load();
+
+    let mut transform = Transform::new();
+    transform.position.x = 150.0;
+    transform.position.y = 150.0;
+
+    // transform.rotation.z = 30.0;
+
+    transform.scale.x = 3.0;
+    transform.scale.y = 3.0;
 
     basic_shader.use_shader();
 
@@ -154,7 +163,7 @@ fn main() -> Result<(), String> {
                 projection.data.as_ptr(),
             );
 
-            sprite.draw();
+            sprite.draw(&transform.get_transformation_matrix());
         }
         window.gl_swap_window();
     }

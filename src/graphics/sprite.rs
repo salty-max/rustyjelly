@@ -1,4 +1,4 @@
-use crate::prelude::{AttributeInfo, Color, GLbuffer, Shader, Vec3, Vertex};
+use crate::prelude::{AttributeInfo, Color, GLbuffer, Matrix4x4, Shader, Vec3, Vertex};
 
 pub struct Sprite<'a> {
     pub name: String,
@@ -9,7 +9,10 @@ pub struct Sprite<'a> {
     pub origin: Vec3,
 
     color: Color,
+
+    a_position_location: gl::types::GLuint,
     u_color_location: gl::types::GLint,
+    u_model_location: gl::types::GLint,
 
     buffer: GLbuffer,
     vertices: [Vertex; 6],
@@ -18,14 +21,27 @@ pub struct Sprite<'a> {
 }
 
 impl<'a> Sprite<'a> {
-    pub fn new(name: &str, shader: &'a Shader, width: f32, height: f32) -> Sprite<'a> {
+    pub fn new(
+        name: &str,
+        shader: &'a Shader,
+        width: Option<f32>,
+        height: Option<f32>,
+    ) -> Sprite<'a> {
         Sprite {
             name: String::from(name),
-            width,
-            height,
+            width: match width {
+                Some(w) => w,
+                _ => 10.0,
+            },
+            height: match height {
+                Some(h) => h,
+                _ => 10.0,
+            },
             origin: Vec3::zero(),
             color: Color::from_palette("red").unwrap(),
+            a_position_location: shader.get_attribute_location("a_position"),
             u_color_location: shader.get_uniform_location("u_color"),
+            u_model_location: shader.get_uniform_location("u_model"),
             buffer: GLbuffer::new(),
             vertices: [Vertex::new(0.0, 0.0, 0.0); 6],
 
@@ -34,11 +50,9 @@ impl<'a> Sprite<'a> {
     }
 
     pub fn load(&mut self) {
-        let a_position_location = self.shader.get_attribute_location("a_position");
-
         self.buffer.configure(
             vec![AttributeInfo {
-                location: a_position_location,
+                location: self.a_position_location,
                 component_size: 3,
             }],
             false,
@@ -69,8 +83,15 @@ impl<'a> Sprite<'a> {
         self.buffer.upload(&vertices_map);
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&self, model: &Matrix4x4) {
         unsafe {
+            gl::UniformMatrix4fv(
+                self.u_model_location, // uniform position (u_projection)
+                1,
+                gl::FALSE,
+                model.data.as_ptr(),
+            );
+
             gl::Uniform4f(
                 self.u_color_location, // uniform position (u_color)
                 self.color.r,
