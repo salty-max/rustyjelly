@@ -121,9 +121,6 @@ impl Color {
         for (k, _) in palette.iter() {
             if &c == k {
                 color = Some(Self::from_hex(palette.get(&c).unwrap()).unwrap());
-                break;
-            } else {
-                color = None
             }
         }
 
@@ -131,5 +128,12 @@ impl Color {
             Some(color) => Ok(color),
             None => Err(String::from("Invalid color")),
         }
+    }
+
+    pub fn white() -> Self {
+        Self::from_palette("white").unwrap()
+    }
+    pub fn black() -> Self {
+        Self::from_palette("black").unwrap()
     }
 }

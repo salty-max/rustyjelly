@@ -117,7 +117,7 @@ fn main() -> Result<(), String> {
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     }
 
-    let color = Color::from_palette("red").unwrap();
+    let color = Color::white();
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
