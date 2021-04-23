@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Mul};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
@@ -37,6 +37,34 @@ impl Add for Vec3 {
     type Output = Vec3;
     fn add(self, other: Self) -> Self {
         self.offset(other.x, other.y, other.z)
+    }
+}
+
+impl Mul for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, other: Self) -> Vec3 {
+        let x = self.x * other.x;
+        let y = self.y * other.y;
+        let z = self.z * other.z;
+
+        Vec3::new(x, y, z)
+    }
+}
+
+impl Mul<i32> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, f: i32) -> Self {
+        self.scale(f as f32)
+    }
+}
+
+impl Mul<f32> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, f: f32) -> Self {
+        self.scale(f)
     }
 }
 
