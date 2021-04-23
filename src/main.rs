@@ -12,7 +12,6 @@ mod prelude {
     pub use crate::graphics::prelude::*;
     pub use crate::math::prelude::*;
     pub use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
-    pub use std::ffi::{CStr, CString};
 }
 
 use prelude::*;
@@ -91,24 +90,10 @@ fn main() -> Result<(), String> {
         include_str!("basic.frag"),
     );
 
-    let vertices: Vec<f32> = vec![
-        10.0, 10.0, 0.0, 10.0, 60.0, 0.0, 60.0, 60.0, 0.0, 60.0, 60.0, 0.0, 60.0, 10.0, 0.0, 10.0,
-        10.0, 0.0,
-    ];
-
-    let a_position_location = basic_shader.get_attribute_location("a_position");
     let u_projection_location = basic_shader.get_uniform_location("u_projection");
-    let u_color_location = basic_shader.get_uniform_location("u_color");
 
-    let attrib_info = AttributeInfo {
-        location: a_position_location,
-        component_size: 3,
-    };
-
-    let mut buffer = GLbuffer::new();
-    buffer.configure(vec![attrib_info], false);
-    buffer.set_data(&vertices);
-    buffer.upload();
+    let mut sprite = Sprite::new("test", &basic_shader, 150.0, 50.0);
+    sprite.load();
 
     basic_shader.use_shader();
 
@@ -116,8 +101,6 @@ fn main() -> Result<(), String> {
         gl::Viewport(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32);
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     }
-
-    let color = Color::white();
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
@@ -164,14 +147,6 @@ fn main() -> Result<(), String> {
 
             // Draw triangle
 
-            gl::Uniform4f(
-                u_color_location, // uniform position (u_color)
-                color.r,
-                color.g,
-                color.b,
-                color.a,
-            );
-
             gl::UniformMatrix4fv(
                 u_projection_location, // uniform position (u_projection)
                 1,
@@ -179,7 +154,7 @@ fn main() -> Result<(), String> {
                 projection.data.as_ptr(),
             );
 
-            buffer.draw();
+            sprite.draw();
         }
         window.gl_swap_window();
     }

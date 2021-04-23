@@ -6,10 +6,10 @@ pub struct AttributeInfo {
 pub struct GLbuffer {
     type_size: usize,
     element_size: gl::types::GLint,
+    data_len: usize,
     stride: gl::types::GLint,
     vao: gl::types::GLuint,
     vbo: gl::types::GLuint,
-    data: Vec<f32>,
 }
 
 impl Drop for GLbuffer {
@@ -26,10 +26,10 @@ impl GLbuffer {
         let mut gl_buffer = GLbuffer {
             type_size: std::mem::size_of::<f32>(),
             element_size: 0,
+            data_len: 0,
             stride: 0,
             vao: 0,
             vbo: 0,
-            data: Vec::new(),
         };
 
         unsafe {
@@ -72,29 +72,15 @@ impl GLbuffer {
         }
     }
 
-    pub fn set_data(&mut self, data: &[f32]) {
-        self.clear_data();
-        self.push_back_data(data);
-    }
-
-    pub fn clear_data(&mut self) {
-        self.data.clear();
-    }
-
-    pub fn push_back_data(&mut self, data: &[f32]) {
-        data.iter().for_each(|d| {
-            self.data.push(*d);
-        });
-    }
-
-    pub fn upload(&self) {
+    pub fn upload(&mut self, data: &[f32]) {
+        self.data_len = data.len();
         unsafe {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
-                (self.data.len() * self.type_size) as gl::types::GLsizeiptr, // size of data in bytes,
-                self.data.as_ptr() as *const gl::types::GLvoid,              // pointer to data
-                gl::STATIC_DRAW,                                             // usage
+                (self.data_len * self.type_size) as gl::types::GLsizeiptr, // size of data in bytes,
+                data.as_ptr() as *const gl::types::GLvoid,                 // pointer to data
+                gl::STATIC_DRAW,                                           // usage
             );
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         }
@@ -104,9 +90,9 @@ impl GLbuffer {
         unsafe {
             gl::BindVertexArray(self.vao);
             gl::DrawArrays(
-                gl::TRIANGLES,                                           // mode
+                gl::TRIANGLES,                                         // mode
                 0, // starting index in the enabled arrays
-                self.data.len() as gl::types::GLint / self.element_size, // number of indices
+                self.data_len as gl::types::GLint / self.element_size, // number of indices
             )
         }
     }

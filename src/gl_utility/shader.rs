@@ -1,7 +1,8 @@
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::{collections::HashMap, str::FromStr};
-
-use crate::prelude::*;
+use std::{collections::HashMap, ffi::CStr, str::FromStr};
+use std::{
+    ffi::CString,
+    sync::atomic::{AtomicBool, Ordering},
+};
 
 /// Only one ShaderManager can be alive
 // Set to false by default (not alive)
