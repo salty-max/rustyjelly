@@ -1,4 +1,4 @@
-use crate::prelude::Vec3;
+use crate::math::prelude::Vec3;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vertex {

@@ -1,20 +1,11 @@
 extern crate gl;
 extern crate sdl2;
 
-mod gl_utility;
-mod graphics;
-mod math;
+use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
 
-mod prelude {
-    pub const WINDOW_WIDTH: u32 = 800;
-    pub const WINDOW_HEIGHT: u32 = 600;
-    pub use crate::gl_utility::prelude::*;
-    pub use crate::graphics::prelude::*;
-    pub use crate::math::prelude::*;
-    pub use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
-}
-
-use prelude::*;
+use crate::gl_utilities::prelude::ShaderManager;
+use crate::graphics::prelude::Sprite;
+use crate::math::prelude::{Matrix4x4, Transform};
 
 // Crash on macOS
 // extern "system" fn dbg_callback(
@@ -37,7 +28,14 @@ use prelude::*;
 //     }
 // }
 
-fn main() -> Result<(), String> {
+pub struct Config {
+    pub title: String,
+    pub virtual_width: u32,
+    pub virtual_height: u32,
+    pub screen_width: u32,
+    pub screen_height: u32,
+}
+pub fn start(config: Config) -> Result<(), String> {
     println!("Hello, JellyEngine!");
 
     // Init window
@@ -50,7 +48,11 @@ fn main() -> Result<(), String> {
     gl_attr.set_double_buffer(true);
 
     let window = video_subsystem
-        .window("JellyEngine", WINDOW_WIDTH, WINDOW_HEIGHT)
+        .window(
+            config.title.as_ref(),
+            config.screen_width,
+            config.screen_height,
+        )
         .opengl()
         .resizable()
         .build()
@@ -76,9 +78,9 @@ fn main() -> Result<(), String> {
 
     let projection = Matrix4x4::orthographic(
         0.0,
-        WINDOW_WIDTH as f32,
+        config.virtual_width as f32,
         0.0,
-        WINDOW_HEIGHT as f32,
+        config.virtual_height as f32,
         -100.0,
         100.0,
     );
@@ -92,22 +94,22 @@ fn main() -> Result<(), String> {
 
     let u_projection_location = basic_shader.get_uniform_location("u_projection");
 
-    let mut sprite = Sprite::new("test", &basic_shader, None, None);
+    let mut sprite = Sprite::new("test", &basic_shader, Some(8.0), Some(8.0));
     sprite.load();
 
     let mut transform = Transform::new();
-    transform.position.x = 150.0;
-    transform.position.y = 150.0;
-
-    // transform.rotation.z = 30.0;
-
-    transform.scale.x = 3.0;
-    transform.scale.y = 3.0;
+    transform.position.x = 8.0;
+    transform.position.y = 8.0;
 
     basic_shader.use_shader();
 
     unsafe {
-        gl::Viewport(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32);
+        gl::Viewport(
+            0,
+            0,
+            config.screen_width as i32,
+            config.screen_height as i32,
+        );
         gl::ClearColor(0.0, 0.0, 0.0, 1.0);
     }
 

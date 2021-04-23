@@ -1,4 +1,6 @@
-use crate::prelude::{AttributeInfo, Color, GLbuffer, Matrix4x4, Shader, Vec3, Vertex};
+use super::prelude::{Color, Vertex};
+use crate::gl_utilities::prelude::{AttributeInfo, GLbuffer, Shader};
+use crate::math::prelude::{Matrix4x4, Vec3};
 
 pub struct Sprite<'a> {
     pub name: String,
