@@ -3,7 +3,7 @@ pub struct AttributeInfo {
     pub component_size: gl::types::GLint,
 }
 
-pub struct GLBuffer {
+pub struct GLbuffer {
     type_size: usize,
     element_size: gl::types::GLint,
     stride: gl::types::GLint,
@@ -12,7 +12,7 @@ pub struct GLBuffer {
     data: Vec<f32>,
 }
 
-impl Drop for GLBuffer {
+impl Drop for GLbuffer {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteBuffers(1, &self.vbo);
@@ -21,9 +21,9 @@ impl Drop for GLBuffer {
     }
 }
 
-impl GLBuffer {
-    pub fn new() -> GLBuffer {
-        let mut gl_buffer = GLBuffer {
+impl GLbuffer {
+    pub fn new() -> GLbuffer {
+        let mut gl_buffer = GLbuffer {
             type_size: std::mem::size_of::<f32>(),
             element_size: 0,
             stride: 0,
@@ -82,9 +82,9 @@ impl GLBuffer {
     }
 
     pub fn push_back_data(&mut self, data: &[f32]) {
-        for i in 0..data.len() {
-            self.data.push(data[i]);
-        }
+        data.iter().for_each(|d| {
+            self.data.push(*d);
+        });
     }
 
     pub fn upload(&self) {

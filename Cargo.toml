@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 gl = "0.14.0"
+hex = "0.4.3"
 
 
 [dependencies.sdl2]
