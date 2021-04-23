@@ -198,8 +198,8 @@ impl Matrix4x4 {
     }
     pub fn rotation(rotation: Vec3) -> Matrix4x4 {
         let rx = Matrix4x4::rotation_x(rotation.x);
-        let ry = Matrix4x4::rotation_x(rotation.y);
-        let rz = Matrix4x4::rotation_x(rotation.z);
+        let ry = Matrix4x4::rotation_y(rotation.y);
+        let rz = Matrix4x4::rotation_z(rotation.z);
 
         rz * ry * rx
     }
