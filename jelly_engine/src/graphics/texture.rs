@@ -1,4 +1,4 @@
-use crate::assets::prelude::image_loader;
+use crate::assets::image_loader;
 
 const LEVEL: i32 = 0;
 const BORDER: i32 = 0;

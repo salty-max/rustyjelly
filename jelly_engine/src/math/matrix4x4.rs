@@ -1,8 +1,9 @@
 #![allow(clippy::suspicious_arithmetic_impl)]
 #![allow(clippy::suspicious_op_assign_impl)]
 
-use super::prelude::Vec3;
 use auto_ops::*;
+
+use super::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Matrix4x4 {

@@ -1,4 +1,4 @@
-use super::prelude::{Color, Texture};
+use super::{color::Color, texture::Texture};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Material<'a> {
