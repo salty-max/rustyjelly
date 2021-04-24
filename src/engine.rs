@@ -1,7 +1,12 @@
 extern crate gl;
 extern crate sdl2;
 
-use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
+use sdl2::{
+    event::Event,
+    keyboard::Keycode,
+    video::{DisplayMode, FullscreenType, GLProfile},
+    VideoSubsystem,
+};
 
 use crate::graphics::prelude::Sprite;
 use crate::math::prelude::{Matrix4x4, Transform};
@@ -30,6 +35,7 @@ use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
 pub struct Config {
     pub title: String,
+    pub fullscreen: bool,
     pub virtual_width: u32,
     pub virtual_height: u32,
     pub screen_width: u32,
@@ -47,7 +53,7 @@ pub fn start(config: Config) -> Result<(), String> {
     gl_attr.set_context_version(3, 3);
     gl_attr.set_double_buffer(true);
 
-    let window = video_subsystem
+    let mut window = video_subsystem
         .window(
             config.title.as_ref(),
             config.screen_width,
@@ -57,6 +63,12 @@ pub fn start(config: Config) -> Result<(), String> {
         .resizable()
         .build()
         .expect("Failed to create window");
+
+    if config.fullscreen {
+        let display_mode = get_display_mode(&video_subsystem, &config);
+        window.set_display_mode(display_mode)?;
+        window.set_fullscreen(FullscreenType::True)?;
+    }
 
     let _ctx = window.gl_create_context()?;
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
@@ -126,24 +138,18 @@ pub fn start(config: Config) -> Result<(), String> {
                     keymod,
                     ..
                 } => match (keycode, keymod) {
-                    (Keycode::R, _) => {
-                        println!("red");
-                        unsafe {
-                            gl::ClearColor(1.0, 0.0, 0.0, 1.0);
-                        }
-                    }
-                    (Keycode::G, _) => {
-                        println!("green");
-                        unsafe {
-                            gl::ClearColor(0.0, 1.0, 0.0, 1.0);
-                        }
-                    }
-                    (Keycode::B, _) => {
-                        println!("blue");
-                        unsafe {
-                            gl::ClearColor(0.0, 0.0, 1.0, 1.0);
-                        }
-                    }
+                    (Keycode::R, _) => unsafe {
+                        let (r, g, b, a) = Color::from_palette("red").unwrap().as_tuple();
+                        gl::ClearColor(r, g, b, a);
+                    },
+                    (Keycode::G, _) => unsafe {
+                        let (r, g, b, a) = Color::from_palette("green").unwrap().as_tuple();
+                        gl::ClearColor(r, g, b, a);
+                    },
+                    (Keycode::B, _) => unsafe {
+                        let (r, g, b, a) = Color::from_palette("blue").unwrap().as_tuple();
+                        gl::ClearColor(r, g, b, a);
+                    },
                     _ => (),
                 },
                 _ => (),
@@ -204,4 +210,20 @@ fn resize(new_size: Option<(i32, i32)>, config: &Config) {
         gl::Scissor(vp_x, vp_y, calculated_width, calculated_height);
         gl::Enable(gl::SCISSOR_TEST)
     }
+}
+
+fn get_display_mode(video_subsystem: &VideoSubsystem, config: &Config) -> DisplayMode {
+    for i in 0..video_subsystem.num_display_modes(0).unwrap() {
+        let display_mode = video_subsystem.display_mode(0, i).unwrap();
+        if display_mode.w == config.screen_width as i32
+            && display_mode.h == config.screen_height as i32
+        {
+            return display_mode;
+        }
+    }
+
+    panic!(
+        "No display mode available for aspect ratio {}x{}",
+        config.screen_width, config.screen_height
+    );
 }
