@@ -42,7 +42,7 @@ jobs:
       run: cargo install cargo-vcpkg
       
     - name: Link SDL2
-      run: vcpkg build
+      run: cargo vcpkg build --manifest-path ./jelly_engine/Cargo.toml
     
     - name: Build
       run: cargo build --verbose

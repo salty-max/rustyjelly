@@ -1,8 +1,8 @@
 
-#version 330 core
+#version 410
 
-layout (location = 0) in vec3 a_position;
-layout (location = 1) in vec2 a_tex_coord;
+in vec3 a_position;
+in vec2 a_tex_coord;
 
 uniform mat4 u_projection;
 uniform mat4 u_model;

@@ -4,7 +4,7 @@ extern crate sdl2;
 use sdl2::{
     event::Event,
     keyboard::Keycode,
-    video::{DisplayMode, FullscreenType, GLProfile},
+    video::{DisplayMode, FullscreenType, GLProfile, Window},
     VideoSubsystem,
 };
 
@@ -13,25 +13,25 @@ use crate::math::prelude::{Matrix4x4, Transform};
 use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
 // Crash on macOS
-// extern "system" fn dbg_callback(
-//     source: gl::types::GLenum,
-//     etype: gl::types::GLenum,
-//     _id: gl::types::GLuint,
-//     severity: gl::types::GLenum,
-//     _msg_length: gl::types::GLsizei,
-//     msg: *const gl::types::GLchar,
-//     _user_data: *mut std::ffi::c_void,
-// ) {
-//     unsafe {
-//         println!(
-//             "dbg_callback {:#X} {:#X} {:#X} {:?}",
-//             source,
-//             etype,
-//             severity,
-//             std::ffi::CStr::from_ptr(msg),
-//         );
-//     }
-// }
+extern "system" fn dbg_callback(
+    source: gl::types::GLenum,
+    etype: gl::types::GLenum,
+    _id: gl::types::GLuint,
+    severity: gl::types::GLenum,
+    _msg_length: gl::types::GLsizei,
+    msg: *const gl::types::GLchar,
+    _user_data: *mut std::ffi::c_void,
+) {
+    unsafe {
+        println!(
+            "dbg_callback {:#X} {:#X} {:#X} {:?}",
+            source,
+            etype,
+            severity,
+            std::ffi::CStr::from_ptr(msg),
+        );
+    }
+}
 
 pub struct Config {
     pub title: String,
@@ -50,7 +50,12 @@ pub fn start(config: Config) -> Result<(), String> {
 
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
-    gl_attr.set_context_version(3, 3);
+
+    if cfg!(target_os = "macos") {
+        gl_attr.set_context_version(4, 1);
+    } else {
+        gl_attr.set_context_version(4, 6);
+    }
     gl_attr.set_double_buffer(true);
 
     let mut window = video_subsystem
@@ -60,7 +65,7 @@ pub fn start(config: Config) -> Result<(), String> {
             config.screen_height,
         )
         .opengl()
-        .resizable()
+        .allow_highdpi()
         .build()
         .expect("Failed to create window");
 
@@ -74,8 +79,10 @@ pub fn start(config: Config) -> Result<(), String> {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
     unsafe {
-        gl::Enable(gl::DEBUG_OUTPUT);
-        // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+        if !cfg!(target_os = "macos") {
+            gl::Enable(gl::DEBUG_OUTPUT);
+            gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+        }
         gl::Enable(gl::BLEND);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
@@ -125,7 +132,7 @@ pub fn start(config: Config) -> Result<(), String> {
 
     basic_shader.use_shader();
 
-    resize(None, &config);
+    resize(&window, (config.virtual_width, config.virtual_height));
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
@@ -190,21 +197,12 @@ pub fn start(config: Config) -> Result<(), String> {
     Ok(())
 }
 
-fn resize(new_size: Option<(i32, i32)>, config: &Config) {
-    let target_aspect_ratio = config.virtual_width as f32 / config.virtual_height as f32;
-    let width: i32;
-    let height: i32;
+fn resize(window: &Window, virtual_size: (u32, u32)) {
+    let target_aspect_ratio = virtual_size.0 as f32 / virtual_size.1 as f32;
 
-    match new_size {
-        Some(new_size) => {
-            width = new_size.0;
-            height = new_size.1;
-        }
-        None => {
-            width = config.screen_width as i32;
-            height = config.screen_height as i32;
-        }
-    }
+    let size = window.drawable_size();
+    let width = size.0 as i32;
+    let height = size.1 as i32;
 
     let mut calculated_height = (width as f32 / target_aspect_ratio) as i32;
     let mut calculated_width = width;
