@@ -115,11 +115,6 @@ pub fn start(config: Config) -> Result<(), String> {
 
     basic_shader.use_shader();
 
-    unsafe {
-        let (r, g, b, a) = Color::black().as_tuple();
-        gl::ClearColor(r, g, b, a);
-    }
-
     resize(None, &config);
 
     let mut event_pump = sdl_context.event_pump()?;
@@ -157,9 +152,18 @@ pub fn start(config: Config) -> Result<(), String> {
         }
 
         unsafe {
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Disable(gl::SCISSOR_TEST);
 
-            // Draw triangle
+            let (r, g, b, a) = Color::black().as_tuple();
+            gl::ClearColor(r, g, b, a);
+
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Enable(gl::SCISSOR_TEST);
+
+            let (r, g, b, a) = Color::white().as_tuple();
+            gl::ClearColor(r, g, b, a);
+
+            gl::Clear(gl::COLOR_BUFFER_BIT);
 
             gl::UniformMatrix4fv(
                 u_projection_location, // uniform position (u_projection)
@@ -204,11 +208,8 @@ fn resize(new_size: Option<(i32, i32)>, config: &Config) {
     let vp_y = (height / 2) - (calculated_height / 2);
 
     unsafe {
-        let (r, g, b, a) = Color::white().as_tuple();
-        gl::ClearColor(r, g, b, a);
         gl::Viewport(vp_x, vp_y, calculated_width, calculated_height);
         gl::Scissor(vp_x, vp_y, calculated_width, calculated_height);
-        gl::Enable(gl::SCISSOR_TEST)
     }
 }
 
