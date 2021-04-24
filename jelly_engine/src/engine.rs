@@ -13,25 +13,25 @@ use crate::math::prelude::{Matrix4x4, Transform};
 use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
 // Crash on macOS
-// extern "system" fn dbg_callback(
-//     source: gl::types::GLenum,
-//     etype: gl::types::GLenum,
-//     _id: gl::types::GLuint,
-//     severity: gl::types::GLenum,
-//     _msg_length: gl::types::GLsizei,
-//     msg: *const gl::types::GLchar,
-//     _user_data: *mut std::ffi::c_void,
-// ) {
-//     unsafe {
-//         println!(
-//             "dbg_callback {:#X} {:#X} {:#X} {:?}",
-//             source,
-//             etype,
-//             severity,
-//             std::ffi::CStr::from_ptr(msg),
-//         );
-//     }
-// }
+extern "system" fn dbg_callback(
+    source: gl::types::GLenum,
+    etype: gl::types::GLenum,
+    _id: gl::types::GLuint,
+    severity: gl::types::GLenum,
+    _msg_length: gl::types::GLsizei,
+    msg: *const gl::types::GLchar,
+    _user_data: *mut std::ffi::c_void,
+) {
+    unsafe {
+        println!(
+            "dbg_callback {:#X} {:#X} {:#X} {:?}",
+            source,
+            etype,
+            severity,
+            std::ffi::CStr::from_ptr(msg),
+        );
+    }
+}
 
 pub struct Config {
     pub title: String,
@@ -50,7 +50,12 @@ pub fn start(config: Config) -> Result<(), String> {
 
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
-    gl_attr.set_context_version(4, 1);
+
+    if cfg!(target_os = "macos") {
+        gl_attr.set_context_version(4, 1);
+    } else {
+        gl_attr.set_context_version(4, 6);
+    }
     gl_attr.set_double_buffer(true);
 
     let mut window = video_subsystem
@@ -74,8 +79,10 @@ pub fn start(config: Config) -> Result<(), String> {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
     unsafe {
-        // gl::Enable(gl::DEBUG_OUTPUT);
-        // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+        if !cfg!(target_os = "macos") {
+            gl::Enable(gl::DEBUG_OUTPUT);
+            gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+        }
         gl::Enable(gl::BLEND);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
