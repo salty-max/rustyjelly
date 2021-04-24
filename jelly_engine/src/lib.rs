@@ -1,4 +1,6 @@
-mod assets;
+#![warn(clippy::suspicious_arithmetic_impl)]
+#![warn(clippy::suspicious_op_assign_impl)]
+
 pub mod engine;
 mod gl_utilities;
 mod graphics;

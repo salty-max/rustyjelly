@@ -1,5 +1,3 @@
-//! Engine module
-
 extern crate gl;
 extern crate sdl2;
 
@@ -10,7 +8,7 @@ use sdl2::{
     VideoSubsystem,
 };
 
-use crate::graphics::prelude::{Material, Sprite, Texture};
+use crate::graphics::prelude::Sprite;
 use crate::math::prelude::{Matrix4x4, Transform};
 use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
@@ -35,28 +33,14 @@ use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 //     }
 // }
 
-/// Engine configuration options
-#[derive(Debug)]
 pub struct Config {
-    /// Window title
     pub title: String,
-    /// Enable fullscreen
     pub fullscreen: bool,
-    /// Emulated window width
     pub virtual_width: u32,
-    /// Emulated window height
     pub virtual_height: u32,
-    /// Actual window width
     pub screen_width: u32,
-    /// Actual window height
     pub screen_height: u32,
 }
-
-/// Start the engine
-///
-/// # Arguments
-///
-/// * `config` - Configuration object
 pub fn start(config: Config) -> Result<(), String> {
     println!("Hello, JellyEngine!");
 
@@ -92,8 +76,6 @@ pub fn start(config: Config) -> Result<(), String> {
     unsafe {
         gl::Enable(gl::DEBUG_OUTPUT);
         // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
-        gl::Enable(gl::BLEND);
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
 
     println!(
@@ -122,17 +104,9 @@ pub fn start(config: Config) -> Result<(), String> {
         include_str!("basic.frag"),
     );
 
-    let texture1 = Texture::new("dude_single.png");
-
     let u_projection_location = basic_shader.get_uniform_location("u_projection");
 
-    let mut sprite = Sprite::new(
-        "test",
-        &basic_shader,
-        Material::new(Color::white(), &texture1),
-        None,
-        None,
-    );
+    let mut sprite = Sprite::new("test", &basic_shader, Some(8.0), Some(8.0));
     sprite.load();
 
     let mut transform = Transform::new();
