@@ -34,6 +34,11 @@ impl Texture {
                 gl::UNSIGNED_BYTE,
                 img.data.as_ptr() as *const gl::types::GLvoid,
             );
+
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+
             gl::BindTexture(gl::TEXTURE_2D, 0);
         }
 

@@ -131,7 +131,7 @@ impl Color {
     }
 
     pub fn white() -> Self {
-        Self::from_palette("white").unwrap()
+        Self::from_rgb(255, 255, 255)
     }
     pub fn black() -> Self {
         Self::from_palette("black").unwrap()

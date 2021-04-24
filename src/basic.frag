@@ -1,15 +1,15 @@
 #version 330 core
 
-// in VS_OUTPUT {
-//     vec3 Color;
-// } IN;
-
 precision mediump float;
-uniform vec4 u_color;
+uniform vec4 u_tint;
 
-out vec4 Color;
+uniform sampler2D u_diffuse;
+
+in vec2 v_tex_coord;
+
+out vec4 FragColor;
 
 void main()
 {
-    Color = u_color;
+    FragColor = u_tint * texture(u_diffuse, v_tex_coord);
 }
