@@ -4,7 +4,7 @@ extern crate sdl2;
 use sdl2::{
     event::Event,
     keyboard::Keycode,
-    video::{DisplayMode, FullscreenType, GLProfile},
+    video::{DisplayMode, FullscreenType, GLProfile, Window},
     VideoSubsystem,
 };
 
@@ -60,7 +60,7 @@ pub fn start(config: Config) -> Result<(), String> {
             config.screen_height,
         )
         .opengl()
-        .resizable()
+        .allow_highdpi()
         .build()
         .expect("Failed to create window");
 
@@ -125,7 +125,7 @@ pub fn start(config: Config) -> Result<(), String> {
 
     basic_shader.use_shader();
 
-    resize(None, &config);
+    resize(&window, (config.virtual_width, config.virtual_height));
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
@@ -190,21 +190,12 @@ pub fn start(config: Config) -> Result<(), String> {
     Ok(())
 }
 
-fn resize(new_size: Option<(i32, i32)>, config: &Config) {
-    let target_aspect_ratio = config.virtual_width as f32 / config.virtual_height as f32;
-    let width: i32;
-    let height: i32;
+fn resize(window: &Window, virtual_size: (u32, u32)) {
+    let target_aspect_ratio = virtual_size.0 as f32 / virtual_size.1 as f32;
 
-    match new_size {
-        Some(new_size) => {
-            width = new_size.0;
-            height = new_size.1;
-        }
-        None => {
-            width = config.screen_width as i32;
-            height = config.screen_height as i32;
-        }
-    }
+    let size = window.drawable_size();
+    let width = size.0 as i32;
+    let height = size.1 as i32;
 
     let mut calculated_height = (width as f32 / target_aspect_ratio) as i32;
     let mut calculated_width = width;
