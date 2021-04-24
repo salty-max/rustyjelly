@@ -37,6 +37,12 @@ jobs:
       with:
         path: target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Install vcpkg
+      run: cargo install cargo-vcpkg
+      
+    - name: Link SDL2
+      run: vcpkg build
     
     - name: Build
       run: cargo build --verbose
