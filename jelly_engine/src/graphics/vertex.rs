@@ -1,5 +1,6 @@
 #![allow(clippy::many_single_char_names)]
-use crate::math::prelude::{Vec2, Vec3};
+
+use crate::math::{vec2::Vec2, vec3::Vec3};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vertex {

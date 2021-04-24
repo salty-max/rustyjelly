@@ -1,4 +1,4 @@
-use super::{matrix4x4::Matrix4x4, prelude::Vec3};
+use super::{matrix4x4::Matrix4x4, vec3::Vec3};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Transform {
