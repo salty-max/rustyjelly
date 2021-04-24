@@ -64,7 +64,7 @@ impl GLbuffer {
                 );
                 gl::EnableVertexAttribArray(attribute.location);
 
-                offset += attribute.component_size;
+                offset += attribute.component_size * self.type_size as i32;
             }
 
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);

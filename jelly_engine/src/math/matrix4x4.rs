@@ -1,3 +1,6 @@
+#![allow(clippy::suspicious_arithmetic_impl)]
+#![allow(clippy::suspicious_op_assign_impl)]
+
 use super::prelude::Vec3;
 use auto_ops::*;
 
