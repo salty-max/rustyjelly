@@ -136,4 +136,8 @@ impl Color {
     pub fn black() -> Self {
         Self::from_palette("black").unwrap()
     }
+
+    pub fn as_tuple(&self) -> (f32, f32, f32, f32) {
+        (self.r, self.g, self.b, self.a)
+    }
 }
