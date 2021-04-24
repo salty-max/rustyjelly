@@ -8,7 +8,7 @@ use sdl2::{
     VideoSubsystem,
 };
 
-use crate::graphics::prelude::Sprite;
+use crate::graphics::prelude::{Material, Sprite, Texture};
 use crate::math::prelude::{Matrix4x4, Transform};
 use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
@@ -76,6 +76,8 @@ pub fn start(config: Config) -> Result<(), String> {
     unsafe {
         gl::Enable(gl::DEBUG_OUTPUT);
         // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
     }
 
     println!(
@@ -106,7 +108,15 @@ pub fn start(config: Config) -> Result<(), String> {
 
     let u_projection_location = basic_shader.get_uniform_location("u_projection");
 
-    let mut sprite = Sprite::new("test", &basic_shader, Some(8.0), Some(8.0));
+    let texture1 = Texture::new("dude_single.png");
+
+    let mut sprite = Sprite::new(
+        "test",
+        &basic_shader,
+        Material::new(Color::white(), &texture1),
+        None,
+        None,
+    );
     sprite.load();
 
     let mut transform = Transform::new();
