@@ -4,15 +4,18 @@ use std::path::{Path, PathBuf};
 
 fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let mut out_path = manifest_dir.clone();
-    let profile = env::var("PROFILE").unwrap();
-    out_path.push(format!("target/{}", profile));
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let mut resource_path = manifest_dir;
-    resource_path.push("assets");
-    let mut resource_out_path = out_path;
-    resource_out_path.push("assets");
-    copy_dir_content_recursive(resource_path.as_path(), &resource_out_path);
+    let mut source_assets_dir = manifest_dir.clone();
+    source_assets_dir.push("assets");
+
+    let mut destination_assets_dir = out_dir.clone();
+    destination_assets_dir.pop();
+    destination_assets_dir.pop();
+    destination_assets_dir.pop();
+    destination_assets_dir.push("assets");
+
+    copy_dir_content_recursive(source_assets_dir.as_path(), &destination_assets_dir);
 }
 
 fn copy_dir_content_recursive(dir: &Path, destination_dir: &PathBuf) {

@@ -8,10 +8,10 @@
             "type": "lldb",
             "request": "launch",
             "name": "Pong Launch",
-            "program": "${workspaceFolder}/examples/pong/target/debug/pong",
+            "program": "${workspaceFolder}/target/debug/pong",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cargo-build-pong"
+            "preLaunchTask": "cargo-build"
         }
     ]
 }
