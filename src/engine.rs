@@ -3,9 +3,9 @@ extern crate sdl2;
 
 use sdl2::{event::Event, keyboard::Keycode, video::GLProfile};
 
-use crate::gl_utilities::prelude::ShaderManager;
 use crate::graphics::prelude::Sprite;
 use crate::math::prelude::{Matrix4x4, Transform};
+use crate::{gl_utilities::prelude::ShaderManager, graphics::prelude::Color};
 
 // Crash on macOS
 // extern "system" fn dbg_callback(
@@ -104,14 +104,11 @@ pub fn start(config: Config) -> Result<(), String> {
     basic_shader.use_shader();
 
     unsafe {
-        gl::Viewport(
-            0,
-            0,
-            config.screen_width as i32,
-            config.screen_height as i32,
-        );
-        gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+        let (r, g, b, a) = Color::black().as_tuple();
+        gl::ClearColor(r, g, b, a);
     }
+
+    resize(None, &config);
 
     let mut event_pump = sdl_context.event_pump()?;
     'main_loop: loop {
@@ -171,4 +168,40 @@ pub fn start(config: Config) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+fn resize(new_size: Option<(i32, i32)>, config: &Config) {
+    let target_aspect_ratio = config.virtual_width as f32 / config.virtual_height as f32;
+    let width: i32;
+    let height: i32;
+
+    match new_size {
+        Some(new_size) => {
+            width = new_size.0;
+            height = new_size.1;
+        }
+        None => {
+            width = config.screen_width as i32;
+            height = config.screen_height as i32;
+        }
+    }
+
+    let mut calculated_height = (width as f32 / target_aspect_ratio) as i32;
+    let mut calculated_width = width;
+
+    if calculated_height > height {
+        calculated_height = height;
+        calculated_width = (calculated_height as f32 * target_aspect_ratio) as i32;
+    }
+
+    let vp_x = (width / 2) - (calculated_width / 2);
+    let vp_y = (height / 2) - (calculated_height / 2);
+
+    unsafe {
+        let (r, g, b, a) = Color::white().as_tuple();
+        gl::ClearColor(r, g, b, a);
+        gl::Viewport(vp_x, vp_y, calculated_width, calculated_height);
+        gl::Scissor(vp_x, vp_y, calculated_width, calculated_height);
+        gl::Enable(gl::SCISSOR_TEST)
+    }
 }
