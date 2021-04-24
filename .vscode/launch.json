@@ -11,6 +11,7 @@
             "program": "${workspaceFolder}/target/debug/pong",
             "args": [],
             "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"],
             "preLaunchTask": "cargo-build"
         }
     ]
