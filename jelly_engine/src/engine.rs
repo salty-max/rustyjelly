@@ -50,7 +50,7 @@ pub fn start(config: Config) -> Result<(), String> {
 
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
-    gl_attr.set_context_version(3, 3);
+    gl_attr.set_context_version(4, 1);
     gl_attr.set_double_buffer(true);
 
     let mut window = video_subsystem
@@ -74,7 +74,7 @@ pub fn start(config: Config) -> Result<(), String> {
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
 
     unsafe {
-        gl::Enable(gl::DEBUG_OUTPUT);
+        // gl::Enable(gl::DEBUG_OUTPUT);
         // gl::DebugMessageCallback(Some(dbg_callback), std::ptr::null());
         gl::Enable(gl::BLEND);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
