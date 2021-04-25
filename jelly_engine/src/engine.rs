@@ -1,13 +1,13 @@
-use crate::core::{Scene, System, Transaction, World};
+use crate::core::{system::AnySystem, Scene, System, Transaction, World};
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Engine {
     world: World,
-    systems: Vec<Box<dyn System>>,
+    systems: Vec<Box<dyn AnySystem>>,
 }
 
 impl Engine {
-    pub fn with_system<S: System>(mut self, system: S) -> Self {
+    pub fn with_system<S: for<'a> System<'a>>(mut self, system: S) -> Self {
         self.systems.push(Box::new(system));
 
         self
@@ -25,7 +25,7 @@ impl Engine {
 
         'main_loop: loop {
             for s in self.systems.iter_mut() {
-                s.run(&mut self.world);
+                s.run_now(&self.world);
             }
 
             if let Transaction::Quit = scene.update(&mut self.world) {

@@ -1,7 +1,7 @@
 mod component;
 pub mod entity;
 mod scene;
-mod system;
+pub mod system;
 mod world;
 
 pub use component::Component;
