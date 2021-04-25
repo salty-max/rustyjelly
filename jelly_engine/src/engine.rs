@@ -1,24 +1,46 @@
-use crate::core::{Scene, Transaction, World};
+use crate::core::{system::AnySystem, Scene, System, Transaction, World};
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Engine {
     world: World,
+    systems: Vec<Box<dyn AnySystem>>,
 }
 
 impl Engine {
+    pub fn with_system<S: for<'a> System<'a>>(mut self, system: S) -> Self {
+        self.systems.push(Box::new(system));
+
+        self
+    }
+
     pub fn run<S: Scene>(mut self, mut scene: S) {
         println!("Engine started...");
+
+        println!("Init systems");
+        for s in self.systems.iter_mut() {
+            s.init(&mut self.world);
+        }
+
         scene.on_enter(&mut self.world);
+
         'main_loop: loop {
-            match scene.update(&mut self.world) {
-                Transaction::Quit => {
-                    println!("Quit transaction received");
-                    break 'main_loop;
-                }
-                _ => {}
+            for s in self.systems.iter_mut() {
+                s.run_now(&self.world);
+            }
+
+            if let Transaction::Quit = scene.update(&mut self.world) {
+                println!("Quit transaction received");
+                break 'main_loop;
             }
         }
+
         scene.on_exit(&mut self.world);
+
+        println!("Dispose systems");
+        for s in self.systems.iter_mut() {
+            s.dispose(&mut self.world);
+        }
+
         println!("Engine stopped");
     }
 }

@@ -1,5 +1,9 @@
 use downcast_rs::Downcast;
-use std::{any::Any, collections::HashMap};
+use std::{
+    any::Any,
+    cell::{Ref, RefCell, RefMut},
+    collections::HashMap,
+};
 use std::{any::TypeId, fmt::Debug};
 
 use super::entity::Entity;
@@ -8,7 +12,7 @@ pub trait Component: Any + Debug {}
 
 #[derive(Debug, Default)]
 pub struct Components {
-    storages: HashMap<TypeId, Box<dyn AnySet>>,
+    storages: HashMap<TypeId, RefCell<Box<dyn AnySet>>>,
 }
 
 impl Components {
@@ -17,23 +21,55 @@ impl Components {
 
         match self.storages.get_mut(&type_id) {
             Some(storage) => {
-                storage
-                    .downcast_mut::<Set<C>>()
-                    .expect("Downcast set error")
-                    .insert(*entity, component);
+                RefMut::map(storage.borrow_mut(), |b| {
+                    b.downcast_mut::<Set<C>>().expect("Downcast set error")
+                })
+                .insert(*entity, component);
             }
             None => {
                 let mut storage = Set::<C>::default();
                 storage.insert(*entity, component);
 
-                self.storages.insert(type_id, Box::new(storage));
+                self.storages
+                    .insert(type_id, RefCell::new(Box::new(storage)));
             }
         }
     }
 
-    pub fn delete_entity(&mut self, entity: &Entity) {
-        for s in self.storages.iter_mut() {
-            s.1.remove(&entity);
+    pub fn register<C: Component>(&mut self) {
+        let type_id = TypeId::of::<C>();
+
+        if self.storages.get(&type_id).is_none() {
+            self.storages
+                .insert(type_id, RefCell::new(Box::new(Set::<C>::default())));
+        }
+    }
+
+    pub fn get<C: Component>(&self) -> Option<Ref<Set<C>>> {
+        let type_id = TypeId::of::<C>();
+
+        match self.storages.get(&type_id) {
+            Some(storage) => Some(Ref::map(storage.borrow(), |b| {
+                b.downcast_ref::<Set<C>>().expect("Downcast set error")
+            })),
+            None => None,
+        }
+    }
+
+    pub fn get_mut<C: Component>(&self) -> Option<RefMut<Set<C>>> {
+        let type_id = TypeId::of::<C>();
+
+        match self.storages.get(&type_id) {
+            Some(storage) => Some(RefMut::map(storage.borrow_mut(), |b| {
+                b.downcast_mut::<Set<C>>().expect("Downcast set error")
+            })),
+            None => None,
+        }
+    }
+
+    pub fn remove_entity(&self, entity: &Entity) {
+        for s in self.storages.iter() {
+            s.1.borrow_mut().remove(&entity);
         }
     }
 }
