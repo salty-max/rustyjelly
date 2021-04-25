@@ -21,10 +21,22 @@ impl System for System1 {
     fn init(&mut self, world: &mut World) {
         println!("System 1 initialized");
     }
-    fn run(&mut self, world: &mut World) {
-        let positions = world.get_components::<Position>();
-        println!("System 1 data {:#?}", positions);
+
+    fn run(&mut self, world: &World) {
+        let mut positions = world.get_components_mut::<Position>().unwrap();
+        let mut tests = world.get_components_mut::<Test>().unwrap();
+
+        for t in tests.values_mut() {
+            t.data += 1;
+        }
+
+        for p in positions.values_mut() {
+            p.x += 1.0;
+        }
+        println!("System 2 data {:?}", tests);
+        println!("System 1 data {:?}", positions);
     }
+
     fn dispose(&mut self, world: &mut World) {
         println!("System 1 disposed");
     }
@@ -37,14 +49,11 @@ impl System for System2 {
     fn init(&mut self, world: &mut World) {
         println!("System 2 initialized");
     }
-    fn run(&mut self, world: &mut World) {
-        let tests = world.get_components_mut::<Test>().unwrap();
 
-        for t in tests.iter_mut() {
-            t.1.data += 1;
-        }
-        println!("System 2 data {:#?}", tests);
+    fn run(&mut self, world: &World) {
+        println!("System 2 running...");
     }
+
     fn dispose(&mut self, world: &mut World) {
         println!("System 2 disposed");
     }

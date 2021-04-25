@@ -47,7 +47,7 @@ impl<'a> EntityBuilder<'a> {
 impl<'a> Drop for EntityBuilder<'a> {
     fn drop(&mut self) {
         if !self.is_build {
-            self.world.delete_entity(&self.entity);
+            self.world.remove_entity(&self.entity);
         }
     }
 }
