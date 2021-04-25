@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 auto_ops = "0.3.0"
+downcast-rs = "1.2.0"
 gl = "0.14.0"
 hex = "0.4.3"
 image = "0.23.14"
