@@ -18,6 +18,10 @@ pub struct Game {
 impl Scene for Game {
     fn on_enter(&mut self, world: &mut World) {
         println!("Hello Game scene 👋");
+
+        let e = world.build_entity();
+
+        println!("Entity {:?}", e);
     }
 
     fn on_exit(&mut self, world: &mut World) {
@@ -29,6 +33,7 @@ impl Scene for Game {
             0 => Transaction::Quit,
             _ => {
                 self.execution_number -= 1;
+                println!("World: {:#?}", world);
                 Transaction::None
             }
         }
