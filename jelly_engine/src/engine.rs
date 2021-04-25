@@ -1,6 +1,6 @@
 use crate::core::{Scene, Transaction, World};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 pub struct Engine {
     world: World,
 }

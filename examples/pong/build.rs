@@ -6,10 +6,10 @@ fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let mut source_assets_dir = manifest_dir.clone();
+    let mut source_assets_dir = manifest_dir;
     source_assets_dir.push("assets");
 
-    let mut destination_assets_dir = out_dir.clone();
+    let mut destination_assets_dir = out_dir;
     destination_assets_dir.pop();
     destination_assets_dir.pop();
     destination_assets_dir.pop();
@@ -21,7 +21,7 @@ fn main() {
 fn copy_dir_content_recursive(dir: &Path, destination_dir: &PathBuf) {
     if dir.is_dir() {
         if !destination_dir.as_path().exists() {
-            fs::create_dir(destination_dir.as_path());
+            fs::create_dir(destination_dir.as_path()).expect("Filed to create directory");
         }
 
         for entry in fs::read_dir(dir).unwrap() {
