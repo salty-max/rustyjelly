@@ -20,6 +20,10 @@ impl World {
         self.components.remove_entity(entity);
     }
 
+    pub fn get_entities(&self) -> &Entities {
+        &self.entities
+    }
+
     pub fn get_components<C: Component>(&self) -> Option<Ref<Set<C>>> {
         self.components.get::<C>()
     }
@@ -30,5 +34,9 @@ impl World {
 
     pub fn insert_component<C: Component>(&mut self, entity: &Entity, component: C) {
         self.components.insert(entity, component);
+    }
+
+    pub fn register_component<C: Component>(&mut self) {
+        self.components.register::<C>();
     }
 }

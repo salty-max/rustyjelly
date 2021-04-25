@@ -1,7 +1,10 @@
 extern crate jelly_engine;
 
 use jelly_engine::{
-    core::{system::ReadSet, Component, Scene, System, Transaction, World},
+    core::{
+        system::{ReadEntities, ReadSet, WriteSet},
+        Component, Scene, System, Transaction, World,
+    },
     Engine,
 };
 
@@ -18,25 +21,21 @@ fn main() {
 pub struct System1 {}
 
 impl<'a> System<'a> for System1 {
-    type Data = ReadSet<'a, Test>;
+    type Data = (WriteSet<'a, Test>, ReadSet<'a, Position>, ReadEntities<'a>);
     fn init(&mut self, world: &mut World) {
         println!("System 1 initialized");
     }
 
-    fn run(&mut self, data: Self::Data) {
-        println!("data {:?}", data);
-        // let mut positions = world.get_components_mut::<Position>().unwrap();
-        // let mut tests = world.get_components_mut::<Test>().unwrap();
+    fn run(&mut self, (mut tests, mut positions, entities): Self::Data) {
+        for t in tests.values_mut() {
+            t.data += 1;
+        }
+        println!("tests {:?}", tests);
+        println!("entities {:?}", entities);
 
-        // for t in tests.values_mut() {
-        //     t.data += 1;
-        // }
-
-        // for p in positions.values_mut() {
-        //     p.x += 1.0;
-        // }
-        // println!("System 2 data {:?}", tests);
-        // println!("System 1 data {:?}", positions);
+        for p in positions.values() {
+            println!("position: {}:{}", p.x, p.y);
+        }
     }
 
     fn dispose(&mut self, world: &mut World) {
@@ -48,7 +47,7 @@ impl<'a> System<'a> for System1 {
 pub struct System2 {}
 
 impl<'a> System<'a> for System2 {
-    type Data = ReadSet<'a, Position>;
+    type Data = ();
 
     fn init(&mut self, world: &mut World) {
         println!("System 2 initialized");

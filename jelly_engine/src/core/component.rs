@@ -36,6 +36,15 @@ impl Components {
         }
     }
 
+    pub fn register<C: Component>(&mut self) {
+        let type_id = TypeId::of::<C>();
+
+        if self.storages.get(&type_id).is_none() {
+            self.storages
+                .insert(type_id, RefCell::new(Box::new(Set::<C>::default())));
+        }
+    }
+
     pub fn get<C: Component>(&self) -> Option<Ref<Set<C>>> {
         let type_id = TypeId::of::<C>();
 
