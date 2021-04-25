@@ -1,4 +1,4 @@
-use super::{component::Set, entity::Entities, Component, World};
+use super::{component::Set, entity::Entities, world::Resource, Component, World};
 use std::{
     any::Any,
     cell::{Ref, RefMut},
@@ -41,6 +41,8 @@ pub trait Data<'a> {
 }
 
 pub type ReadEntities<'a> = &'a Entities;
+pub type Read<'a, R> = Ref<'a, R>;
+pub type Write<'a, R> = RefMut<'a, R>;
 pub type ReadSet<'a, C> = Ref<'a, Set<C>>;
 pub type WriteSet<'a, C> = RefMut<'a, Set<C>>;
 
@@ -57,6 +59,26 @@ impl<'a> Data<'a> for ReadEntities<'a> {
 
     fn fetch(world: &'a World) -> Self {
         world.get_entities()
+    }
+}
+
+impl<'a, R: Resource + Default> Data<'a> for Read<'a, R> {
+    fn setup(world: &mut World) {
+        world.insert_resource::<R>(R::default());
+    }
+
+    fn fetch(world: &'a World) -> Self {
+        world.get_resource::<R>().unwrap()
+    }
+}
+
+impl<'a, R: Resource + Default> Data<'a> for Write<'a, R> {
+    fn setup(world: &mut World) {
+        world.insert_resource::<R>(R::default());
+    }
+
+    fn fetch(world: &'a World) -> Self {
+        world.get_resource_mut::<R>().unwrap()
     }
 }
 

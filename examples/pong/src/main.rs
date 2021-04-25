@@ -3,6 +3,7 @@ extern crate jelly_engine;
 use jelly_engine::{
     core::{
         system::{ReadEntities, ReadSet, WriteSet},
+        timing::{FrameLimiter, TimingSystem},
         Component, Scene, System, Transaction, World,
     },
     Engine,
@@ -12,6 +13,7 @@ fn main() {
     Engine::default()
         .with_system(System1 {})
         .with_system(System2 {})
+        .with_system(TimingSystem::default().with_limiter(FrameLimiter::new(30)))
         .run(Game {
             execution_count: 10,
         });
